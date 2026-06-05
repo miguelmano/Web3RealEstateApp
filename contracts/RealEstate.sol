@@ -18,6 +18,7 @@ contract RealEstate is ERC721URIStorage {
         _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenURI);
         
+        
         return newItemId;
     }
 
