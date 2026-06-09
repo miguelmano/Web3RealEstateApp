@@ -26,4 +26,11 @@ contract Escrow {
         inspector = _inspector;
         lender = _lender;
     }
+
+    function list(uint256 _nftId) public{
+        //Transfer the NFT from the seller to the escrow contract
+        //msg.sender is the one calling the list function, which should be the seller. 
+        //The NFT will be transferred from the seller's address to the escrow contract's address. This ensures that the NFT is held securely in escrow until the conditions of the sale are met.
+        IERC721(nftAddress).transferFrom(msg.sender, address(this), _nftId);
+    }
 }

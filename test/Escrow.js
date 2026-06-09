@@ -33,6 +33,17 @@ describe('Escrow', () => {
             inspector.address,
             lender.address
         );
+
+        //Approve property, so that the escrow contract can transfer the NFT on behalf of the seller
+        //Approve function is a default function of the ERC721 standard, which allows the owner of an NFT to approve another address (in this case, the escrow contract) to transfer the NFT on their behalf. 
+        // This is necessary for the escrow contract to be able to transfer the NFT from the seller to the buyer when the conditions of the sale are met.
+        transaction = await realEstate.connect(seller).approve(escrow.address, 1);
+        await transaction.wait();
+
+        //list property
+        //List function is a custom function that we created in the Escrow contract, which allows the seller to list their property for sale.
+        transaction = await escrow.connect(seller).list(1);
+        await transaction.wait();
     })
 
     describe('Deployment', () => {
@@ -55,6 +66,12 @@ describe('Escrow', () => {
         it ('Returns lender address', async () => {
             const result = await escrow.lender();
             expect(result).to.be.equal(lender.address);
+        })
+    })
+
+    describe('Listing', () => {
+        it ('Updates ownership of the NFT', async () => {
+            expect(await realEstate.ownerOf(1)).to.be.equal(escrow.address);
         })
     })
 
