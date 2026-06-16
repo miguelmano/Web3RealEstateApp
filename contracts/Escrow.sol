@@ -15,6 +15,17 @@ contract Escrow {
     address public inspector;
     address public lender;
 
+    modifier onlySeller() {
+        require(msg.sender == seller, "Only seller can call this method");
+        _;
+    }
+
+    mapping(uint256 => bool) public isListed;
+    mapping(uint256 => uint256) public purchasePrice;
+    mapping(uint256 => uint256) public escrowAmount;
+    mapping(uint256 => address) public buyer;
+
+
     constructor(
         address _nftAddress, 
         address payable _seller, 
@@ -27,10 +38,22 @@ contract Escrow {
         lender = _lender;
     }
 
-    function list(uint256 _nftId) public{
+    function list(
+        uint256 _nftId, 
+        address _buyer, 
+        uint256 _purchasePrice, 
+        uint256 _escrowAmount
+    ) public payable onlySeller {
         //Transfer the NFT from the seller to the escrow contract
         //msg.sender is the one calling the list function, which should be the seller. 
         //The NFT will be transferred from the seller's address to the escrow contract's address. This ensures that the NFT is held securely in escrow until the conditions of the sale are met.
         IERC721(nftAddress).transferFrom(msg.sender, address(this), _nftId);
+        
+        //mapping assignment to mark the NFT as listed for sale. 
+        //This allows the contract to keep track of which NFTs are currently available for purchase through the escrow process.
+        isListed[_nftId] = true;
+        purchasePrice[_nftId] = _purchasePrice;
+        escrowAmount[_nftId] = _escrowAmount;
+        buyer[_nftId] = _buyer;
     }
 }

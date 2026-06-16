@@ -42,7 +42,7 @@ describe('Escrow', () => {
 
         //list property
         //List function is a custom function that we created in the Escrow contract, which allows the seller to list their property for sale.
-        transaction = await escrow.connect(seller).list(1);
+        transaction = await escrow.connect(seller).list(1, buyer.address, tokens(10), tokens(5));
         await transaction.wait();
     })
 
@@ -70,8 +70,29 @@ describe('Escrow', () => {
     })
 
     describe('Listing', () => {
+        it ('Updates as Listed', async () => {
+            expect(await escrow.isListed(1)).to.be.equal(true);
+        })
+
         it ('Updates ownership of the NFT', async () => {
             expect(await realEstate.ownerOf(1)).to.be.equal(escrow.address);
+        })
+
+        it ('Returns buyer', async () => {
+            expect(await escrow.buyer(1)).to.be.equal(buyer.address);
+        })
+
+        it ('Returns purchase price', async () => {
+            expect(await escrow.purchasePrice(1)).to.be.equal(tokens(10));
+        })
+
+        it ('Returns escrow amount', async () => {
+            expect(await escrow.escrowAmount(1)).to.be.equal(tokens(5));
+        })
+
+        it ("Prevents non-owner from listing", async () => {
+            const transaction = escrow.connect(buyer).list(1, buyer.address, tokens(10), tokens(5));
+            await expect(transaction).to.be.reverted;
         })
     })
 
