@@ -20,6 +20,11 @@ contract Escrow {
         _;
     }
 
+    modifier onlyInspector() {
+        require(msg.sender == inspector, "Only inspector can call this method");
+        _;
+    }
+
     modifier onlyBuyer(uint256 _nftId) {
         require(msg.sender == buyer[_nftId], "Only buyer can call this method");
         _;
@@ -29,7 +34,7 @@ contract Escrow {
     mapping(uint256 => uint256) public purchasePrice;
     mapping(uint256 => uint256) public escrowAmount;
     mapping(uint256 => address) public buyer;
-
+    mapping(uint256 => bool) public inspectionPassed;
 
     constructor(
         address _nftAddress, 
@@ -66,6 +71,14 @@ contract Escrow {
         require(msg.value >= escrowAmount[_nftId]);
     }
 
+    function updateInspectionStatus(uint256 _nftId, bool _passed)
+        public
+        onlyInspector
+    {
+        inspectionPassed[_nftId] = _passed;
+    }
+
+
     receive() external payable {
         // This function is called when the contract receives Ether without any data. 
         // It allows the contract to accept plain Ether transfers, which can be useful for receiving payments or deposits.
@@ -74,4 +87,5 @@ contract Escrow {
     function getBalance() public view returns (uint256) {
         return address(this).balance;
     }
+    
 }
