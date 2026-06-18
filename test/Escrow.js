@@ -19,7 +19,7 @@ describe('Escrow', () => {
         //deploy real estate
         const RealEstate = await ethers.getContractFactory('RealEstate');
         realEstate = await RealEstate.deploy();
-        console.log('RealEstate deployed to:', realEstate.address);
+        //console.log('RealEstate deployed to:', realEstate.address);
 
         //mint
         //TokenURI: https://ipfs.io/ipfs/QmTudSYeM7mz3PkYEWXWqPjomRPHogcMFSq7XAvsvsgAPS , gets metadata from this link, which is a JSON file that contains the name, description, and image of the property. The image is also stored on IPFS and can be accessed through the link provided in the metadata.
@@ -106,11 +106,68 @@ describe('Escrow', () => {
     })
 
     describe('Inspection', () => {
-        it ('Updates inspection evaluation', async () => {
+        it ('Updates inspection status', async () => {
             const transaction = await escrow.connect(inspector).updateInspectionStatus(1, true);
             await transaction.wait();
             const result = await escrow.inspectionPassed(1);
             expect(result).to.be.equal(true);
+        })
+    })
+
+    describe('Approval', () => {
+        it ('Updates approval status', async () => {
+            let transaction = await escrow.connect(buyer).approveSale(1);
+            await transaction.wait();
+
+            transaction = await escrow.connect(seller).approveSale(1);
+            await transaction.wait();
+
+            transaction = await escrow.connect(lender).approveSale(1);
+            await transaction.wait();
+
+            let result = await escrow.approval(1, buyer.address);
+            expect(result).to.be.equal(true);
+
+            result = await escrow.approval(1, seller.address);
+            expect(result).to.be.equal(true);
+
+            result = await escrow.approval(1, lender.address);
+            expect(result).to.be.equal(true);
+        })
+    })
+
+    describe('Finalize sale', async () => {
+        beforeEach(async() => {
+            let transaction = await escrow.connect(buyer).depositEarnest(1, { value: tokens(5)})
+            await transaction.wait()
+
+            transaction = await escrow.connect(inspector).updateInspectionStatus(1, true)
+            await transaction.wait()
+
+            transaction = await escrow.connect(buyer).approveSale(1)
+            await transaction.wait()
+
+            transaction = await escrow.connect(seller).approveSale(1)
+            await transaction.wait()
+
+            transaction = await escrow.connect(lender).approveSale(1)
+            await transaction.wait()
+
+            transaction = await escrow.connect(lender).approveSale(1)
+            await transaction.wait()
+
+            await lender.sendTransaction({ to : escrow.address, value: tokens(5) })
+
+            transaction = await escrow.connect(seller).finalizeSale(1)
+            await transaction.wait()
+        })
+
+        it('Updates onwership', async() =>{
+            expect( await realEstate.ownerOf(1)).to.be.equal(buyer.address)
+        })
+
+        it('Updates balance', async() =>{
+            expect( await escrow.getBalance()).to.be.equal(0)
         })
     })
 })
