@@ -170,4 +170,29 @@ describe('Escrow', () => {
             expect( await escrow.getBalance()).to.be.equal(0)
         })
     })
+
+    describe('Cancel sale before passing inspection', async () => {
+        it('Resets escrow balance', async() =>{
+            let transaction = await escrow.connect(buyer).depositEarnest(1, { value: tokens(5)})
+            await transaction.wait()
+
+            transaction = await escrow.connect(buyer).cancelSale(1)
+            await transaction.wait()
+            expect( await escrow.getBalance()).to.be.equal(0)
+        })
+    })
+
+    describe('Cancel sale after passing inspection', async () => {
+        it('Resets escrow balance', async() =>{
+            let transaction = await escrow.connect(buyer).depositEarnest(1, { value: tokens(5)})
+            await transaction.wait()
+
+            transaction = await escrow.connect(inspector).updateInspectionStatus(1, true)
+            await transaction.wait()
+
+            transaction = await escrow.connect(buyer).cancelSale(1)
+            await transaction.wait()
+            expect( await escrow.getBalance()).to.be.equal(0)
+        })
+    })
 })

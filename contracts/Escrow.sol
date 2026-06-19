@@ -105,6 +105,14 @@ contract Escrow {
         IERC721(nftAddress).transferFrom(address(this), buyer[_nftId], _nftId);
     }
 
+    function cancelSale( uint256 _nftId) public {
+        if(inspectionPassed[_nftId] == false){
+            payable(buyer[_nftId]).transfer(address(this).balance);
+        } else {
+            payable(seller).transfer(address(this).balance);
+        }
+    }
+
     receive() external payable {
         // This function is called when the contract receives Ether without any data. 
         // It allows the contract to accept plain Ether transfers, which can be useful for receiving payments or deposits.
