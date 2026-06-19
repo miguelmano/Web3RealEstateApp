@@ -105,6 +105,8 @@ contract Escrow {
         IERC721(nftAddress).transferFrom(address(this), buyer[_nftId], _nftId);
     }
 
+    //cancel sale(handle earnest deposit)
+    //if inspection status is not approved, then refund, otherwise send to seller
     function cancelSale( uint256 _nftId) public {
         if(inspectionPassed[_nftId] == false){
             payable(buyer[_nftId]).transfer(address(this).balance);
